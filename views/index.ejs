@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="css/sweetalert2.min.css">
+    <style type="text/css">
+        * {
+        box-sizing: border-box; -webkit-tap-highlight-color: rgba(0,0,0,0); -webkit-text-size-adjust:none;
+        -webkit-overflow-scrolling: touch;
+        }
+        html, h1, h2, h3, h4, p { margin:0; padding:0; font-weight: normal; }
+        ul, ol { margin:0; list-style: none; padding: 0; }
+        a { text-decoration:none; color: black; border:none; outline: none; }
+        img { border:none; }
+        input, button { -webkit-appearance: none; background: none; padding: 0; outline-style: none; border: none; }
+        form, table { margin:0; padding:0; }
+        em, i { font-style: normal; }
+
+        #controls {
+            position: absolute;
+            z-index: 2;
+            right: 10%;
+            top: 5%;
+            background-color: olivedrab;
+            color: #fff;
+            padding: 10px;
+        }
+        #controls .icon {
+            margin: 0 5px;
+            color: #fff;
+        }
+        #controls .icon img { width: 20px; vertical-align: sub; }
+        #controls .info {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .popout {
+            margin-bottom: 22px;
+            position: relative;
+        }
+        .popout label {
+          text-align: right;
+          left: 0;
+          top: 0;
+          position: absolute;
+          font-size: 14px;
+          color: #000;
+          line-height: 1;
+          width: 80px;
+          padding: 11px 12px 11px 0;
+          box-sizing: border-box;
+        }
+        .popout input {
+          position: relative;
+          display: block;
+          margin-left: 17%;
+          background-color: #fff;
+          background-image: none;
+          border-radius: 4px;
+          border: 1px solid #bfcbd9;
+          box-sizing: border-box;
+          color: #1f2d3d;
+          font-size: inherit;
+          height: 36px;
+          width: 79%;
+          line-height: 1;
+          outline: none;
+          padding: 3px 10px;
+          transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="hover-console"></div>
+    <div id="controls">
+        <a id="add" class="icon" href="#"><img src="images/add.png"/> 添加部门</a>
+        <a id="delete" class="icon" href="#"><img src="images/delete.png"/> 删除部门</a>
+        <div class="info" id="info"></div>
+    </div>
+
+    <div id="main" style="height:100vh"></div>
+    <script src="js/zepto.min.js"></script>
+    <script src="js/sweetalert2.min.js"></script>
+
+    <script src="js/echarts.js"></script>
+    <script src="js/TreeGraph.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+</body>
