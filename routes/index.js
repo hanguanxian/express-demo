@@ -89,30 +89,25 @@ router.post('/newDepartment.do',function(req,res,next){
           newDepartment.is_enable = true;
           newDepartment.remark = '';
 
-          Department.findOrCreate({where: newDepartment,defaults: newDepartment})
+          Department.findOrCreate({where: newDepartment})
           .spread(function(departMent, created) {
               res.send(departMent);
-              console.log(created);
-          }).catch(function(err){
-              console.log("发生错误：" + err);
-          });
+          })
       }).catch(function(err){
           console.log("发生错误：" + err);
       });
-
-    });
-
-    router.post('/deleteDepartment.do',function(req,res,next){
-        return db.sequelize.transaction(function(t){
-          return Department.destroy({
-            where: {dept_code: req.body.departmentCode}
-          }, {transaction: t}).then(function(result){
-              res.send(result);
-          }).catch(function(err){
-              console.log("发生错误：" + err);
-          });
-        });
     });
 });
 
+router.post('/deleteDepartment.do',function(req,res,next){
+    return db.sequelize.transaction(function(t){
+      return Department.destroy({
+        where: {dept_code: req.body.departmentCode}
+      }, {transaction: t}).then(function(status){
+          res.send({msg:"删除成功"});
+      })
+    }).catch(function(err){
+        console.log("发生错误：" + err);
+    });;
+});
 module.exports = router;

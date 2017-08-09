@@ -5,7 +5,7 @@ var itemStyle = {};
 var itemSelected = {};
 var myChart;
 var zNodes=[];
-getNodes();
+//getNodes();
 // 路径配置
 require.config({
     paths: {
@@ -22,7 +22,7 @@ require(
         // 基于准备好的dom，初始化echarts图表
         myChart = ec.init(document.getElementById('main'));
 
-        var data=getData(zNodes)
+        var data=getNodes();
         //console.log(data);
         itemSelected = data[0];
         itemSelected.itemStyle = itemStyle;
@@ -46,6 +46,7 @@ require(
 );
 
 function getNodes(){
+  var newData;
   $.ajax({
     async : false,
     url : 'departmentList.do',
@@ -54,11 +55,15 @@ function getNodes(){
     timeout : '30000',
     success : function(result) {
       zNodes = result;
+      var mytree=new treeMenu(zNodes)
+      var myTreeData = mytree.init("0");
+    	newData = myTreeData.children;
     },
     error : function(result) {
       swal('网络错误');
     }
   });
+  return newData;
 }
 
 //得到数据
@@ -173,7 +178,9 @@ $(function () {
                   timeout : '30000',
                   data: ajaxData,
                   success : function(result) {
-                    console.log(result);
+                    var data=getNodes();
+                    setData(myChart,data);
+                    itemSelected = null;
                   },
                   error : function(result) {
                     swal('网络错误');
@@ -189,9 +196,7 @@ $(function () {
                 // }
                 // tempData.name = "value";
                 // zNodes.push(tempData);//TODO 提交到后台
-                var data=getData(zNodes)
-                setData(myChart,data);
-                itemSelected = null;
+
             }
         })
     })
@@ -226,15 +231,15 @@ $(function () {
               timeout : '30000',
               data: {departmentCode: itemSelected.id},
               success : function(result) {
-                console.log(result);
+                var data=getNodes();
+                setData(myChart,data);
+                itemSelected = null;
               },
               error : function(result) {
                 swal('网络错误');
               }
             });
-            var data=getData(zNodes);
-            setData(myChart,data);
-            itemSelected = null;
+
         })
     })
 })

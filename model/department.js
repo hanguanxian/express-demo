@@ -1,6 +1,5 @@
 'use strict'
 
-
 module.exports = function(sequelize,DataTypes){
     var Department = sequelize.define('org_department',{
         auto_id:{

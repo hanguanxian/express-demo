@@ -1,15 +1,15 @@
 var itemStyle = {};
     itemStyle.normal = {color: "#8dc63f"};
-    itemStyle.normal.label = {textStyle: {color: "#fff"}};
+    //itemStyle.normal.label = {textStyle: {color: "#fff"}};
     itemStyle.emphasis = {color: "#8dc63f"};
 var itemSelected = {};
 var myChart;
 var zNodes=[];
-getNodes();
+
 // 路径配置
 require.config({
     paths: {
-        echarts: 'http://localhost:3000/js'
+        echarts: 'js'
     }
 });
 // 使用
@@ -22,7 +22,7 @@ require(
         // 基于准备好的dom，初始化echarts图表
         myChart = ec.init(document.getElementById('main'));
 
-        var data=getData(zNodes)
+        var data=getNodes();
         //console.log(data);
         itemSelected = data[0];
         itemSelected.itemStyle = itemStyle;
@@ -38,41 +38,40 @@ require(
                 }
             }
             itemSelected = param.data;
-            var data=getData(temp);
-            //console.log("data:"+JSON.stringify(data));
+            var mytree = new treeMenu(zNodes)
+            var data = mytree.init("0").children;
+            console.log("data:"+JSON.stringify(data));
             setData(myChart,data,0);
         });
     }
 );
 
 function getNodes(){
+  var data;
   $.ajax({
     async : false,
-    url : 'http://localhost:3000/departmentList',
+    url : 'departmentList.do',
     type : 'GET',
     dataType : 'json',
     timeout : '30000',
     success : function(result) {
       zNodes = result;
+      var mytree=new treeMenu(zNodes)
+      var myTreeData = mytree.init("0");
+    	data = myTreeData.children;
     },
     error : function(result) {
       swal('网络错误');
     }
   });
-}
-
-//得到数据
-function getData(zNodes){
-	var mytree=new treeMenu(zNodes)
-  var myTreeData = mytree.init("0");
-	return myTreeData.children;
+  return data;
 }
 
 
 function setData(myChart,data){
     var option = {
         title : {
-            text: '景源组织架构图'
+            text: '景泉组织架构图'
         },
         tooltip : {
             trigger: 'item',
@@ -104,12 +103,12 @@ function setData(myChart,data){
             {
                 name:'树图',
                 type:'tree',
-                orient: 'vertical',  // vertical horizontal
-                rootLocation: {x: 'center',y: 100}, // 根节点位置  {x: 'center',y: 10}
-                nodePadding: 40,//节点间距
-                layerPadding: 40,
-                symbol: 'emptyRectangle',
-                symbolSize: 60,
+                orient: 'horizontal',  // vertical horizontal
+                rootLocation:  {x: 100, y: 'center'}, // 根节点位置  {x: 'center',y: 10}
+                nodePadding: 10,
+                layerPadding: 150,
+                //symbol: 'emptyRectangle',
+                symbolSize: 15,
                 roam: true,
                 itemStyle: {
                     normal: {
@@ -118,7 +117,7 @@ function setData(myChart,data){
                         borderColor: "#8dc63f",
                         label: {
                             show: true,
-                            position: 'inside',
+                            position: 'right',
                             textStyle: {
                                 color: '#666767'
                             }
@@ -152,11 +151,33 @@ $(function () {
         }
         swal({
             title: '添加部门',
-            input: 'text',
+            html: '<div class="popout"><label>部门代码</label><input id="departmentCode"/></div>'+'<div class="popout"><label>部门名称</label><input id="departmentName"/></div>',
             showCloseButton: true,
             confirmButtonText: '确定'
-        }).then(function (value) {
-            if(value) {
+        }).then(function () {
+            var departmentCode = $("#departmentCode").val();
+            var departmentName = $("#departmentName").val();
+            if(departmentCode && departmentName) {
+                var ajaxData = {
+                    departmentCode: departmentCode.trim(),
+                    departmentName: departmentName.trim(),
+                    parentId: itemSelected.id
+                }
+                console.log(ajaxData);
+                $.ajax({
+                  async : true,
+                  url : 'newDepartment.do',
+                  type : 'POST',
+                  dataType : 'json',
+                  timeout : '30000',
+                  data: ajaxData,
+                  success : function(result) {
+                    console.log(result);
+                  },
+                  error : function(result) {
+                    swal('网络错误');
+                  }
+                });
                 var tempData = {};
                 if(zNodes.length == 0) {
                   tempData.pId = 0;
@@ -165,9 +186,9 @@ $(function () {
                   tempData.pId = itemSelected.id;
                   tempData.id = itemSelected.id + 1;
                 }
-                tempData.name = value;
-                zNodes.push(tempData);//TODO 提交到后台
-                var data=getData(zNodes)
+                //tempData.name = "value";
+                //zNodes.push(tempData);//TODO 提交到后台
+                var data=getNodes();
                 setData(myChart,data);
                 itemSelected = null;
             }
@@ -196,12 +217,21 @@ $(function () {
           confirmButtonText: '删除',
           cancelButtonText: '取消'
         }).then(function () {
-            for (var i = 0; i < zNodes.length; i++) {
-                if(zNodes[i].id == itemSelected.id) {
-                    zNodes.splice(i,1);
-                }
-            }
-            var data=getData(zNodes);
+            $.ajax({
+              async : true,
+              url : 'deleteDepartment.do',
+              type : 'POST',
+              dataType : 'json',
+              timeout : '30000',
+              data: {departmentCode: itemSelected.id},
+              success : function(result) {
+                console.log(result);
+              },
+              error : function(result) {
+                swal('网络错误');
+              }
+            });
+            var data=getNodes();
             setData(myChart,data);
             itemSelected = null;
         })
