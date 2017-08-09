@@ -38,7 +38,9 @@ require(
                 }
             }
             itemSelected = param.data;
-            var data=getData(temp);
+            var mytree=new treeMenu(temp)
+            var myTreeData = mytree.init("0");
+            var data=myTreeData.children;
             //console.log("data:"+JSON.stringify(data));
             setData(myChart,data,0);
         });
@@ -65,14 +67,6 @@ function getNodes(){
   });
   return newData;
 }
-
-//得到数据
-function getData(zNodes){
-	var mytree=new treeMenu(zNodes)
-  var myTreeData = mytree.init("0");
-	return myTreeData.children;
-}
-
 
 function setData(myChart,data){
     var option = {
@@ -186,17 +180,6 @@ $(function () {
                     swal('网络错误');
                   }
                 });
-                // var tempData = {};
-                // if(zNodes.length == 0) {
-                //   tempData.pId = 0;
-                //   tempData.id = 1;
-                // } else {
-                //   tempData.pId = itemSelected.id;
-                //   tempData.id = itemSelected.id + 1;
-                // }
-                // tempData.name = "value";
-                // zNodes.push(tempData);//TODO 提交到后台
-
             }
         })
     })

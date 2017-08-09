@@ -5,7 +5,7 @@ var itemStyle = {};
 var itemSelected = {};
 var myChart;
 var zNodes=[];
-
+//getNodes();
 // 路径配置
 require.config({
     paths: {
@@ -29,7 +29,7 @@ require(
         setData(myChart,data);
         myChart.on('click', function(param) {
             var temp = JSON.parse(JSON.stringify(zNodes));
-            //console.log(param);
+            console.log(param);
             for (var i = 0; i < temp.length; i++) {
                 if(temp[i].name == param.name) {
                     $("#info").text(temp[i].name);
@@ -38,16 +38,17 @@ require(
                 }
             }
             itemSelected = param.data;
-            var mytree = new treeMenu(zNodes)
-            var data = mytree.init("0").children;
-            console.log("data:"+JSON.stringify(data));
+            var mytree=new treeMenu(temp)
+            var myTreeData = mytree.init("0");
+            var data=myTreeData.children;
+            //console.log("data:"+JSON.stringify(data));
             setData(myChart,data,0);
         });
     }
 );
 
 function getNodes(){
-  var data;
+  var newData;
   $.ajax({
     async : false,
     url : 'departmentList.do',
@@ -58,17 +59,32 @@ function getNodes(){
       zNodes = result;
       var mytree=new treeMenu(zNodes)
       var myTreeData = mytree.init("0");
-    	data = myTreeData.children;
+    	newData = myTreeData.children;
     },
     error : function(result) {
       swal('网络错误');
     }
   });
-  return data;
+  return newData;
 }
 
-
 function setData(myChart,data){
+    var arr1=[];
+    var arr2=[];
+    var secondChild = data[0].children;
+    for (var i = 0; i < secondChild.length; i++) {
+        if(secondChild[i]['children'].length == 0) {
+            arr2.push(secondChild[i]);
+        } else {
+            arr1.push(secondChild[i]);
+        }
+    }
+    var temp = JSON.parse(JSON.stringify(data[0]));
+    temp.children = [];
+    var data1 = [JSON.parse(JSON.stringify(temp))];
+    var data2 = [JSON.parse(JSON.stringify(temp))];
+    data1[0].children = arr1;
+    data2[0].children = arr2;
     var option = {
         title : {
             text: '景泉组织架构图'
@@ -104,7 +120,7 @@ function setData(myChart,data){
                 name:'树图',
                 type:'tree',
                 orient: 'horizontal',  // vertical horizontal
-                rootLocation:  {x: 100, y: 'center'}, // 根节点位置  {x: 'center',y: 10}
+                rootLocation:  {x: "500", y: 'center'}, // 根节点位置  {x: 'center',y: 10}
                 nodePadding: 10,
                 layerPadding: 150,
                 //symbol: 'emptyRectangle',
@@ -135,7 +151,43 @@ function setData(myChart,data){
                         borderColor: "#8dc63f"
                     }
                 },
-                data: data
+                data: data1
+            },{
+                name:'树图',
+                type:'tree',
+                orient: 'horizontal',  // vertical horizontal
+                rootLocation:  {x: "500", y: 'center'}, // 根节点位置  {x: 'center',y: 10}
+                nodePadding: 10,
+                layerPadding: 150,
+                direction: 'inverse',
+                symbolSize: 15,
+                roam: true,
+                itemStyle: {
+                    normal: {
+                        color: "#fff",
+                        borderWidth: 1,
+                        borderColor: "#8dc63f",
+                        label: {
+                            show: true,
+                            position: 'left',
+                            textStyle: {
+                                color: '#666767'
+                            }
+                        },
+                        lineStyle: {
+                            color: '#8dc63f',
+                            width: 1,
+                            type: 'curve' // 'curve'|'broken'|'solid'|'dotted'|'dashed' 线的连接方式
+                        }
+                    },
+                    emphasis: {
+                        color: '#fff',
+                        borderWidth: 2,
+                        barBorderColor: "#8dc63f",
+                        borderColor: "#8dc63f"
+                    }
+                },
+                data: data2
             }
         ]
     };
@@ -172,25 +224,14 @@ $(function () {
                   timeout : '30000',
                   data: ajaxData,
                   success : function(result) {
-                    console.log(result);
+                    var data=getNodes();
+                    setData(myChart,data);
+                    itemSelected = null;
                   },
                   error : function(result) {
                     swal('网络错误');
                   }
                 });
-                var tempData = {};
-                if(zNodes.length == 0) {
-                  tempData.pId = 0;
-                  tempData.id = 1;
-                } else {
-                  tempData.pId = itemSelected.id;
-                  tempData.id = itemSelected.id + 1;
-                }
-                //tempData.name = "value";
-                //zNodes.push(tempData);//TODO 提交到后台
-                var data=getNodes();
-                setData(myChart,data);
-                itemSelected = null;
             }
         })
     })
@@ -225,15 +266,15 @@ $(function () {
               timeout : '30000',
               data: {departmentCode: itemSelected.id},
               success : function(result) {
-                console.log(result);
+                var data=getNodes();
+                setData(myChart,data);
+                itemSelected = null;
               },
               error : function(result) {
                 swal('网络错误');
               }
             });
-            var data=getNodes();
-            setData(myChart,data);
-            itemSelected = null;
+
         })
     })
 })
