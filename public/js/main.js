@@ -5,6 +5,7 @@ var itemStyle = {};
 var itemSelected = {};
 var myChart;
 var zNodes=[];
+var treeData;
 //getNodes();
 // 路径配置
 require.config({
@@ -22,33 +23,33 @@ require(
         // 基于准备好的dom，初始化echarts图表
         myChart = ec.init(document.getElementById('main'));
 
-        var data=getNodes();
+        treeData=getNodes();
         //console.log(data);
-        itemSelected = data[0];
-        itemSelected.itemStyle = itemStyle;
-        setData(myChart,data);
+
+
+
         myChart.on('click', function(param) {
-            var temp = JSON.parse(JSON.stringify(zNodes));
+            var tempData = JSON.parse(JSON.stringify(zNodes));
             //console.log(param);
-            for (var i = 0; i < temp.length; i++) {
-                if(temp[i].name == param.name) {
-                    $("#info").text(temp[i].name);
-                    temp[i].itemStyle = itemStyle;
+            for (var i = 0; i < zNodes.length; i++) {
+                if(tempData[i].name == param.name) {
+                    $("#info").text(tempData[i].name);
+                    tempData[i].itemStyle = itemStyle;
                     break;
                 }
             }
             itemSelected = param.data;
-            var mytree=new treeMenu(temp)
-            var myTreeData = mytree.init("0");
-            var data=myTreeData.children;
+            var mytree=new treeMenu(tempData)
+            var childTree = mytree.init(itemSelected.id);
+            //console.log(data);
             //console.log("data:"+JSON.stringify(data));
-            setData(myChart,data,0);
+            
+            setData(myChart,treeData,[childTree]);
         });
     }
 );
 
 function getNodes(){
-  var newData;
   $.ajax({
     async : false,
     url : 'departmentList.do',
@@ -58,17 +59,29 @@ function getNodes(){
     success : function(result) {
       zNodes = result;
       var mytree=new treeMenu(zNodes)
-      var myTreeData = mytree.init("0");
-    	newData = myTreeData.children;
+      var myTreeData = mytree.init("0");//头结点从"0" 开始 只取第一层
+    	treeData = myTreeData.children;
+      itemSelected = treeData[0];
+      itemSelected.itemStyle = itemStyle;
+      var firstNode = {};
+      for (var i = 0; i < itemSelected.children.length; i++) {
+          treeData[0].children[i].children = [];
+          if(i == 0) {
+              firstNode = treeData[0].children[i];
+          }
+      }
+      setData(myChart,treeData,[firstNode]);
     },
     error : function(result) {
       swal('网络错误');
     }
   });
-  return newData;
+  return treeData;
 }
 
-function setData(myChart,data){
+function setData(myChart,data1,data2){
+    if(!data1) data1 = [];
+    if(!data2) data2 = [];
     var option = {
         title : {
             text: '景泉组织架构图'
@@ -81,31 +94,13 @@ function setData(myChart,data){
                 return res;
             }
         },
-        /*toolbox: {
-            show : true,
-            orient: 'horizontal',      // 布局方式，默认为水平布局，可选为： 'horizontal' ¦ 'vertical'
-            x: 50,  // 水平安放位置，默认为全图右对齐，可选为 'center' ¦ 'left' ¦ 'right'
-            y: 50,
-            itemGap:  10, //各个item之间的间隔
-            itemSize: 16, //工具箱icon大小，单位（px）
-            feature : {
-                myTool : {
-                    show : true,
-                    title : '自定义扩展方法',
-                    icon : 'http://echarts.baidu.com/echarts2/doc/asset/img/echarts-logo.png',
-                    onclick : function (){
-                        alert('myToolHandler')
-                    }
-                }
-            }
-        },*/
         series : [
             {
-                name:'树图',
+                name:'部门',
                 type:'tree',
                 orient: 'horizontal',  // vertical horizontal
-                rootLocation:  {x: 100, y: 'center'}, // 根节点位置  {x: 'center',y: 10}
-                nodePadding: 10,
+                rootLocation:  {x: 200, y: 'center'}, // 根节点位置  {x: 'center',y: 10}
+                nodePadding: 15,
                 layerPadding: 150,
                 //symbol: 'emptyRectangle',
                 symbolSize: 15,
@@ -135,7 +130,43 @@ function setData(myChart,data){
                         borderColor: "#8dc63f"
                     }
                 },
-                data: data
+                data: data1
+            },{
+                name:'子部门',
+                type:'tree',
+                orient: 'horizontal',  // vertical horizontal
+                rootLocation:  {x: "600", y: 'center'}, // 根节点位置  {x: 'center',y: 10}
+                nodePadding: 20,
+                layerPadding: 150,
+                //symbol: 'emptyRectangle',
+                symbolSize: 15,
+                roam: true,
+                itemStyle: {
+                    normal: {
+                        color: "#fff",
+                        borderWidth: 1,
+                        borderColor: "#8dc63f",
+                        label: {
+                            show: true,
+                            position: 'right',
+                            textStyle: {
+                                color: '#666767'
+                            }
+                        },
+                        lineStyle: {
+                            color: '#8dc63f',
+                            width: 1,
+                            type: 'curve' // 'curve'|'broken'|'solid'|'dotted'|'dashed' 线的连接方式
+                        }
+                    },
+                    emphasis: {
+                        color: '#fff',
+                        borderWidth: 2,
+                        barBorderColor: "#8dc63f",
+                        borderColor: "#8dc63f"
+                    }
+                },
+                data: data2
             }
         ]
     };
@@ -172,7 +203,7 @@ $(function () {
                   timeout : '30000',
                   data: ajaxData,
                   success : function(result) {
-                    var data=getNodes();
+                    treeData = getNodes();
                     setData(myChart,data);
                     itemSelected = null;
                   },
@@ -214,8 +245,8 @@ $(function () {
               timeout : '30000',
               data: {departmentCode: itemSelected.id},
               success : function(result) {
-                var data=getNodes();
-                setData(myChart,data);
+                treeData = getNodes();
+                setData(myChart,treeData);
                 itemSelected = null;
               },
               error : function(result) {
